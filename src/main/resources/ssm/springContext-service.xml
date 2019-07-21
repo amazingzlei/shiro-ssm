@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!--<context:property-placeholder location="classpath:appConfig.properties"  ignore-unresolvable="true"/>-->
+
+    <context:component-scan base-package="com.fh.*"/>
+
+    <!--如果是多realm的情况，需要配置认证器-->
+    <bean id="authenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+        <property name="authenticationStrategy">
+            <!--只有一个realm认证成功即可，返回第一个realm验证成功的认证信息-->
+            <bean class="org.apache.shiro.authc.pam.FirstSuccessfulStrategy"></bean>
+            <!--只有一个realm认证成功即可，返回所有认证成功的认证信息,属于默认配置-->
+            <!--<bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean>-->
+            <!--必须所有realm认证成功才行-->
+            <!--<bean class="org.apache.shiro.authc.pam.AllSuccessfulStrategy"></bean>-->
+        </property>
+    </bean>
+
+    <!--1.配置securitymanage-->
+    <bean id="securityManger" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManger"></property>
+        <!--如果是单个realm则配置以下属性-->
+        <!--<property name="realm" ref="jdbcRealm"></property>-->
+        <!--配置多个realm-->
+        <property name="realms">
+            <list>
+                <ref bean="jdbcRealm"></ref>
+                <ref bean="secondRealm"></ref>
+            </list>
+        </property>
+        <property name="rememberMeManager.cookie.maxAge" value="10"></property>
+    </bean>
+    <!--2.配置cachemanger-->
+    <bean id="cacheManger" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:cache/ehcache.xml"></property>
+    </bean>
+    <!--3.配置realm-->
+    <bean id="jdbcRealm" class="com.fh.common.ShiroRealm">
+        <!--配置MD5解析，这样就能将前端传过来的密码进行md5加密。用于后续判断用户是否认证-->
+        <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <property name="hashAlgorithmName" value="MD5"></property>
+                <!--色值加密次数-->
+                <property name="hashIterations" value="1"></property>
+            </bean>
+        </property>
+    </bean>
+    <bean id="secondRealm" class="com.fh.common.SecondRealm">
+        <!--配置MD5解析，这样就能将前端传过来的密码进行md5加密。用于后续判断用户是否认证-->
+        <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <property name="hashAlgorithmName" value="SHA1"></property>
+                <!--色值加密次数-->
+                <property name="hashIterations" value="1"></property>
+            </bean>
+        </property>
+    </bean>
+
+    <!--
+        6.配置shiroFilter
+        6.1 id必须和web-xml中的DelegatingFilterProxy的filetername一致
+    -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManger"/>
+        <property name="loginUrl" value="/login"/>
+        <property name="unauthorizedUrl" value="/unauthorized"/>
+        <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property>
+        <!--以下方式是通过配置的形式，也可以通过从数据库中获取，动态的设置，具体设置见上-->
+        <!--<property name="filterChainDefinitions">-->
+            <!--<value>-->
+                <!--&lt;!&ndash;anon表示无需验证，authc表示需要验证 logout表示注销 其他过滤器见DefaultFilter&ndash;&gt;-->
+                <!--/login = anon-->
+                <!--/userLogin = anon-->
+                <!--/logout = logout-->
+                <!--/user = roles[user]-->
+                <!--/admin = roles[admin]-->
+                <!--/** = authc-->
+            <!--</value>-->
+        <!--</property>-->
+    </bean>
+
+    <!--通过工厂模式设置-->
+    <bean id="filterChainDefinitionMap" factory-bean="shiroFilterDefinitionMapFatory" factory-method="init">
+
+    </bean>
+
+    <bean id="shiroFilterDefinitionMapFatory" class="com.fh.factory.ShiroFilterDefinitionMapFactory"></bean>
+
+</beans>
