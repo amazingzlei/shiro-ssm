@@ -66,9 +66,11 @@ public class ShiroRealm extends AuthorizingRealm {
         User user = (User) principalCollection.getPrimaryPrincipal();
         // 2.利用登录的用户信息来获取当前用户的角色或权限(可能需要查询数据库)
         Set<String> roles = new HashSet<>();
-        roles.add("user");
+//        roles.add("user");
         if("zenglei2".equals(user.getUsername())){
             roles.add("admin");
+        }else {
+            roles.add("user");
         }
         // 3.创建SimpleAuthorizationInfo，并设置roles属性
         SimpleAuthorizationInfo simpleAuthorizationInfo =
