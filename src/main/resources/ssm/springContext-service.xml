@@ -36,7 +36,7 @@
                 <ref bean="secondRealm"></ref>
             </list>
         </property>
-        <property name="rememberMeManager.cookie.maxAge" value="10"></property>
+        <property name="rememberMeManager.cookie.maxAge" value="20"></property>
     </bean>
     <!--2.配置cachemanger-->
     <bean id="cacheManger" class="org.apache.shiro.cache.ehcache.EhCacheManager">
@@ -48,7 +48,7 @@
         <property name="credentialsMatcher">
             <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
                 <property name="hashAlgorithmName" value="MD5"></property>
-                <!--色值加密次数-->
+                <!--设置加密次数-->
                 <property name="hashIterations" value="1"></property>
             </bean>
         </property>
@@ -58,7 +58,7 @@
         <property name="credentialsMatcher">
             <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
                 <property name="hashAlgorithmName" value="SHA1"></property>
-                <!--色值加密次数-->
+                <!--设置加密次数-->
                 <property name="hashIterations" value="1"></property>
             </bean>
         </property>
